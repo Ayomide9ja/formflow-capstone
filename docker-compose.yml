@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  frontend:
+    image: ayomiide/formflow-frontend:${APP_VERSION}
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+  backend:
+    image: ayomiide/formflow-backend:${APP_VERSION}
+    environment:
+      - DB_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: formflow
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+volumes:
+  db-data:
