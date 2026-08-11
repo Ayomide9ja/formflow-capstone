@@ -19,13 +19,16 @@ Secrets Management
 No passwords or sensitive keys are hardcoded in the codebase. Things like the database password, Docker Hub token, and SSH keys are stored safely in GitHub Secrets. During the deployment process, GitHub Actions injects these secrets into the server's .env file so the application can use them without exposing them to the public.
 
 CI/CD Deployment Screenshots
-[Drag and drop your GitHub Actions success screenshot here]
+<img width="1906" height="930" alt="CI-CD Success " src="https://github.com/user-attachments/assets/c9426dba-9f00-4c23-8053-8c045fe5f030" />
 
-[Drag and drop your live website screenshot here]
 
-[Drag and drop your broken website/terminal error screenshot here]
+<img width="967" height="562" alt="Formflow productions" src="https://github.com/user-attachments/assets/bb766a1c-0f09-441c-9f56-cedb2b070da2" />
 
-[Drag and drop your recovered website screenshot here]
+<img width="967" height="562" alt="formflow-error" src="https://github.com/user-attachments/assets/d1114103-4407-4945-a77b-0f09f9baa695" />
+
+
+<img width="967" height="562" alt="Formflow productions" src="https://github.com/user-attachments/assets/32b45a35-317c-4254-a1f5-87481b42c366" />
+
 
 Incident Report: Post-Deployment Rollback Test
 Symptom
