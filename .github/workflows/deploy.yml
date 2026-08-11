@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to server
+      - name: Deploy to VM via SSH
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -20,19 +20,35 @@ jobs:
           script: |
             set -e
 
+            echo "Connected to server successfully"
+
             mkdir -p ~/app
             cd ~/app
 
-            # Download docker-compose.yml from GitHub
+            echo "Downloading docker-compose.yml..."
+
             curl -fsSL -o docker-compose.yml \
               https://raw.githubusercontent.com/Ayomide9ja/formflow-capstone/main/docker-compose.yml
 
-            # Create .env file
+            echo "Creating .env file..."
+
             echo "APP_VERSION=${{ github.sha }}" > .env
             echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
 
-            # Pull latest images
+            echo "Checking Docker..."
+
+            docker --version
+
+            echo "Checking Docker Compose..."
+
+            docker compose version
+
+            echo "Pulling latest images..."
+
             docker compose pull
 
-            # Start/restart containers
+            echo "Starting containers..."
+
             docker compose up -d --remove-orphans
+
+            echo "Deployment completed successfully"
