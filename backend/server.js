@@ -1,5 +1,4 @@
-process.exit(1);
-const express = require('express');
+process.exit(1);const express = require('express');
 const { Pool } = require('pg');
 const app = express();
 const port = 3000;
