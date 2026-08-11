@@ -1,4 +1,4 @@
-name: Deploy FormFlow 3-Tier App
+name: Deploy to server
 
 on:
   push:
@@ -6,46 +6,33 @@ on:
       - main
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            set -e
 
-    - name: Login to Docker Hub
-      uses: docker/login-action@v2
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+            mkdir -p ~/app
+            cd ~/app
 
-    - name: Build and Push Frontend
-      run: |
-        docker build -t ayomiide/formflow-frontend:${{ github.sha }} ./frontend
-        docker push ayomiide/formflow-frontend:${{ github.sha }}
+            # Download docker-compose.yml from GitHub
+            curl -fsSL -o docker-compose.yml \
+              https://raw.githubusercontent.com/Ayomide9ja/formflow-capstone/main/docker-compose.yml
 
-    - name: Build and Push Backend
-      run: |
-        docker build -t ayomiide/formflow-backend:${{ github.sha }} ./backend
-        docker push ayomiide/formflow-backend:${{ github.sha }}
+            # Create .env file
+            echo "APP_VERSION=${{ github.sha }}" > .env
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
 
-    - name: Deploy to VM via SSH
-      uses: appleboy/ssh-action@v0.1.10
-      with:
-        host: ${{ secrets.VM_HOST }}
-        username: ${{ secrets.VM_USERNAME }}
-        key: ${{ secrets.VM_SSH_KEY }}
-        script: |
-          mkdir -p ~/app
-          cd ~/app
-          
-          # Write docker-compose.yml from repo to VM
-          curl -o docker-compose.yml https://raw.githubusercontent.com/${{ github.repository }}/main/docker-compose.yml
-          
-          # Update the .env file with the current Commit SHA and Secrets
-          echo "APP_VERSION=${{ github.sha }}" > .env
-          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
-          
-          # Pull the new images and restart the containers
-          docker-compose pull
-          docker-compose up -d --remove-orphans
+            # Pull latest images
+            docker compose pull
+
+            # Start/restart containers
+            docker compose up -d --remove-orphans
