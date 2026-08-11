@@ -1,5 +1,9 @@
 FormFlow Capstone Project
+
+
 Project Overview
+
+
 FormFlow is a 3-tier web application I built for the Kura Capstone assignment. It uses a React frontend, a Node.js/Express backend, and a PostgreSQL database. Everything is packaged in Docker containers and automatically deployed to an Azure Virtual Machine using GitHub Actions.
 
 Phase 0 Design Worksheet
