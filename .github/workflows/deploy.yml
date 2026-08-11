@@ -44,10 +44,11 @@ jobs:
           # Download docker-compose.yml from repo
           curl -fsSL -o docker-compose.yml https://raw.githubusercontent.com/${{ github.repository }}/main/docker-compose.yml
 
-          # Set environment variables
+          # Write environment variables to .env for Docker Compose to read
           echo "APP_VERSION=${{ github.sha }}" > .env
           echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+          echo "DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}" >> .env
 
-          # Pull and run containers using modern Docker syntax
+          # Pull and start containers
           docker compose pull
           docker compose up -d --remove-orphans

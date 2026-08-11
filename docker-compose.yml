@@ -1,59 +1,31 @@
-name: Deploy FormFlow 3-Tier App
+version: '3.8'
 
-on:
-  push:
-    branches:
-      - main
+services:
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: formflow
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
 
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
+  backend:
+    image: ${DOCKERHUB_USERNAME}/formflow-backend:${APP_VERSION}
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      DB_HOST: db
+      DB_USER: postgres
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: formflow
+    depends_on:
+      - db
 
-    steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
-
-    - name: Login to Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-    - name: Build and Push Frontend
-      run: |
-        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/formflow-frontend:${{ github.sha }} ./frontend
-        docker push ${{ secrets.DOCKERHUB_USERNAME }}/formflow-frontend:${{ github.sha }}
-
-    - name: Build and Push Backend
-      run: |
-        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/formflow-backend:${{ github.sha }} ./backend
-        docker push ${{ secrets.DOCKERHUB_USERNAME }}/formflow-backend:${{ github.sha }}
-
-    - name: Copy docker-compose.yml to VM
-      uses: appleboy/scp-action@v0.1.7
-      with:
-        host: ${{ secrets.VM_HOST }}
-        username: ${{ secrets.VM_USERNAME }}
-        key: ${{ secrets.VM_SSH_KEY }}
-        port: 22
-        source: "docker-compose.yml"
-        target: "~/app"
-
-    - name: Deploy to VM via SSH
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.VM_HOST }}
-        username: ${{ secrets.VM_USERNAME }}
-        key: ${{ secrets.VM_SSH_KEY }}
-        port: 22
-        script: |
-          set -e
-          cd ~/app
-
-          # Update the .env file with current Commit SHA and Secrets
-          echo "APP_VERSION=${{ github.sha }}" > .env
-          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
-
-          # Pull new images and restart containers
-          docker compose pull
-          docker compose up -d --remove-orphans
+  frontend:
+    image: ${DOCKERHUB_USERNAME}/formflow-frontend:${APP_VERSION}
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
